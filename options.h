@@ -9,6 +9,10 @@
  * See http://www.wtfpl.net/ for more details.
  */
 
+#include <map>
+#include <string>
+#include <vector>
+
 // a very simple command line argument object.
 class Options
 {

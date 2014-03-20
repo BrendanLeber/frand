@@ -44,6 +44,25 @@ struct ci_char_traits : public std::char_traits<char>
         
         return s;
     }
+
+private:
+    // TODO implement in a more generic C++11 way
+    static int _memicmp(const void *s1, const void *s2, size_t n)
+    {
+        if (n != 0) {
+            auto p1 = reinterpret_cast<const unsigned char*>(s1);
+            auto p2 = reinterpret_cast<const unsigned char*>(s2);
+
+            do {
+                if (toupper(*p1) != toupper(*p2))
+                    return *p1 - *p2;
+                p1++;
+                p2++;
+            } while (--n != 0);
+        }
+
+        return 0;
+    }
 };
 
 typedef std::basic_string<char, ci_char_traits> ci_string;

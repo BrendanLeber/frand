@@ -9,7 +9,18 @@
  * See http://www.wtfpl.net/ for more details.
  */
 
-#include "stdafx.h"
+#include <algorithm>
+#include <iostream>
+#include <memory>
+#include <random>
+#include <sstream>
+#include <stdexcept>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "ci_string.h"
 #include "options.h"
 
 template<typename T>
@@ -22,13 +33,14 @@ struct tree_node
     tree_node(T value) : data(value), parent(nullptr) {}
 };
 
+
 struct random_generator : std::unary_function<unsigned, unsigned>
 {
     std::mt19937 gen;
 
     unsigned operator()(unsigned i)
     {
-        std::uniform_int<> rng(0, i - 1);
+        std::uniform_int_distribution<> rng(0, i - 1);
         return rng(gen);
     }
     
@@ -42,11 +54,12 @@ private:
     random_generator& operator=(const random_generator& rhs);
 };
 
+
 template<typename Iter>
 Iter random_element(Iter begin, Iter end, random_generator& gen)
 {
-    const Iter::difference_type n = std::distance(begin, end);
-    const Iter::difference_type k = gen(static_cast<unsigned>(n));
+    const typename Iter::difference_type n = std::distance(begin, end);
+    const typename Iter::difference_type k = gen(static_cast<unsigned>(n));
 
     Iter ret = begin;
     std::advance(ret, k);
@@ -60,24 +73,26 @@ T num_digits(T value)
     return static_cast<T>(floor(log10(abs(static_cast<double>(value))))) + 1;
 }
 
+
 template<typename T>
 void traverse(T* node)
 {
     if (node == nullptr)
         return;
 
-    std::stringstream str;
-    str << node->data;
+    std::stringstream ss;
+    ss << node->data;
+    const std::string& dir_name = ss.str();
 
     // TODO error checking
-    _mkdir(str.str().c_str());
-    _chdir(str.str().c_str());
+    mkdir(dir_name.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    chdir(dir_name.c_str());
 
     for (auto it = node->children.begin(); it != node->children.end(); ++it)
         traverse(*it);
     
     // TODO error checking
-    _chdir("..");
+    chdir("..");
 }
 
 // ===================================================================================================
@@ -87,17 +102,15 @@ void display_help(const std::string& invocation_name);
 void display_license();
 void display_syntax(const std::string& invocation_name);
 void display_version();
-std::string getcwd();
+std::string _getcwd();
 
 // ===================================================================================================
 
 void display_banner(const std::string& invocation_name)
 {
-    Module_Version ver;
-    ver.GetFileVersionInfo();
     std::cerr
-        << invocation_name << " v" << ver.GetProductVersion() << " - " << ver.GetValue("FileDescription") << std::endl
-        << ver.GetValue("LegalCopyright") << std::endl << std::endl;
+        << invocation_name << " vX.X.X" << " - TODO description" << std::endl
+        << "TODO LegalCopyright" << std::endl << std::endl;
 }
 
 void display_help(const std::string& invocation_name)
@@ -133,13 +146,13 @@ void display_version()
     std::cout << "We are all versions!" << std::endl;
 }
 
-std::string getcwd()
+std::string _getcwd()
 {
     const size_t chunkSize = 255;
     const int maxChunks = 10240; // 2550 KiBs of current path are more than enough
 
     char stackBuffer[chunkSize]; // Stack buffer for the "normal" case
-    if (_getcwd(stackBuffer, sizeof(stackBuffer)) != NULL)
+    if (getcwd(stackBuffer, sizeof(stackBuffer)) != NULL)
         return stackBuffer;
     
     if (errno != ERANGE) {
@@ -153,7 +166,7 @@ std::string getcwd()
         // With boost use scoped_ptr; in C++0x, use unique_ptr
         // If you want to be less C++ but more efficient you may want to use realloc
         std::auto_ptr<char> cwd(new char[chunkSize*chunks]); 
-        if (_getcwd(cwd.get(), chunkSize * chunks) != NULL)
+        if (getcwd(cwd.get(), chunkSize * chunks) != NULL)
             return cwd.get();
 
         if (errno != ERANGE)
@@ -260,16 +273,16 @@ int main(int argc, char** argv)
 
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO error checking
-    auto current_dir = getcwd();
+    auto current_dir = _getcwd();
     if (options.named_arg_exists("base"))
-        _chdir(options.named_arg("base").c_str());
+        chdir(options.named_arg("base").c_str());
 
     // depth first visit
     traverse(root);
 
     // TODO error checking
     if (options.named_arg_exists("base"))
-        _chdir(current_dir.c_str());
+        chdir(current_dir.c_str());
 
     // clean up our objects
     // TODO - replace with generic tree traversal delete delete_tree()
