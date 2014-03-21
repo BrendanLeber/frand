@@ -10,8 +10,11 @@
  */
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+#include "ci_string.h"
 
 // a very simple command line argument object.
 class Options
@@ -24,6 +27,11 @@ private:
     bool helpf, versionf, licensef;
 
 public:
+    Options()
+        : helpf(false), versionf(false), licensef(false)
+    {
+    }
+
     Options(int argc, char** argv)
         : helpf(false), versionf(false), licensef(false)
     {
@@ -42,6 +50,20 @@ public:
         args.assign(argv + 1, argv + argc);
     }
 
+    Options& operator=(const Options& rhs)
+    {
+        if (&rhs == this)
+            return *this;
+
+        name = rhs.name;
+        args = rhs.args;
+        named_args = rhs.named_args;
+        helpf = rhs.helpf;
+        versionf = rhs.versionf;
+        licensef = rhs.licensef;
+
+        return *this;
+    }
 
     bool process()
     {
@@ -114,3 +136,5 @@ public:
         return atoi(named_arg(narg).c_str());
     }
 };
+
+extern Options goptions;

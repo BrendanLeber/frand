@@ -1,5 +1,3 @@
-// frand: Create a random collection of folders.
-
 /* Copyright (C) 2013-2014 Brendan Leber <brendan@brendanleber.com>
  * 
  * This work is free. You can redistribute it and/or modify it under the
@@ -20,8 +18,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "appinfo.h"
 #include "ci_string.h"
+#include "display.h"
 #include "options.h"
+
+
+Options goptions;
+
 
 template<typename T>
 struct tree_node
@@ -97,54 +101,9 @@ void traverse(T* node)
 
 // ===================================================================================================
 
-void display_banner();
-void display_help(const std::string& invocation_name);
-void display_license();
-void display_syntax(const std::string& invocation_name);
-void display_version();
 std::string _getcwd();
 
 // ===================================================================================================
-
-void display_banner(const std::string& invocation_name)
-{
-    std::cerr
-        << invocation_name << " vX.X.X" << " - TODO description" << std::endl
-        << "TODO LegalCopyright" << std::endl << std::endl;
-}
-
-void display_help(const std::string& invocation_name)
-{
-    display_syntax(invocation_name);
-
-    std::cout
-        << "There is *still* no help for you..."
-        << std::endl;
-}
-
-void display_license()
-{
-    std::cout 
-        << "This work is free.  You can redistribute it and/or modify it under the\n"
-        << "terms of the Do What The Fuck You Want To Public License, Version 2,\n"
-        << "as published by Sam Hocevar.\n"
-        << "\n"
-        << "See http://www.wtfpl.net/ for more details."
-        << std::endl;
-}
-
-void display_syntax(const std::string& invocation_name)
-{
-    std::cerr
-        << "Syntax: " << invocation_name
-        << " [/help] [/license] [/version] [/base <dir>] [/seed <int>] <int>"
-        << std::endl;
-}
-
-void display_version()
-{
-    std::cout << "We are all versions!" << std::endl;
-}
 
 std::string _getcwd()
 {
@@ -184,53 +143,46 @@ std::string _getcwd()
 
 int main(int argc, char** argv)
 {
-    Options options(argc, argv);
+    goptions = Options(argc, argv);
 
     typedef tree_node<int> int_node;
 
-    // display a standard banner and copyright notice
-    display_banner(options.invocation_name());
-
-    if (!options.process())
+    if (!goptions.process())
         return 1;
 
     // handle the information options that stop the program after being displayed
-    if (options.license_wanted()) {
-        display_license();
+    if (goptions.help_wanted()) {
+        display_help();
         return 0;
     }
-    else if (options.help_wanted()) {
-        display_help(options.invocation_name());
-        return 0;
-    }
-    else if (options.version_wanted()) {
+    else if (goptions.version_wanted()) {
         display_version();
         return 0;
     }
 
     // make sure we have one argument left for the number of folders to create
-    if (options.remaining_args() != 1) {
-        display_syntax(options.invocation_name());
+    if (goptions.remaining_args() != 1) {
+        // TODO display_syntax();
         return 1;
     }
 
-    int folders = options.argument_as_int(0);
+    int folders = goptions.argument_as_int(0);
     if (!folders) {
-        std::cerr << "Invalid value (" << options.argument(0) << ") for number of folders!" << std::endl;
+        std::cerr << "Invalid value (" << goptions.argument(0) << ") for number of folders!" << std::endl;
         return 2;
     }
 
     // default to time for rng seed unless user specified one on the command line
     auto seed = static_cast<std::mt19937::result_type>(time(nullptr));
-    if (options.named_arg_exists("seed"))
-        seed = static_cast<std::mt19937::result_type>(options.named_arg_as_int("seed"));
+    if (goptions.named_arg_exists("seed"))
+        seed = static_cast<std::mt19937::result_type>(goptions.named_arg_as_int("seed"));
 
     // display the options so that the run can be repeated for testing purposes
     // TODO - option (/debug | /verbose) to display diagnostic information
     std::cout
         << "number of folders: " << folders << '\n'
         << "seed: " << seed << '\n'
-        << "base directory: '" << (options.named_arg_exists("base") ? options.named_arg("base") : ".") << "'\n"
+        << "base directory: '" << (goptions.named_arg_exists("base") ? goptions.named_arg("base") : ".") << "'\n"
         << std::endl;
 
     // setup rng for shuffling the nodes
@@ -274,14 +226,14 @@ int main(int argc, char** argv)
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO error checking
     auto current_dir = _getcwd();
-    if (options.named_arg_exists("base"))
-        chdir(options.named_arg("base").c_str());
+    if (goptions.named_arg_exists("base"))
+        chdir(goptions.named_arg("base").c_str());
 
     // depth first visit
     traverse(root);
 
     // TODO error checking
-    if (options.named_arg_exists("base"))
+    if (goptions.named_arg_exists("base"))
         chdir(current_dir.c_str());
 
     // clean up our objects
