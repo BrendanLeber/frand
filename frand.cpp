@@ -18,13 +18,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "appinfo.h"
-#include "ci_string.h"
-#include "display.h"
 #include "options.h"
-
-
-Options goptions;
 
 
 template<typename T>
@@ -143,54 +137,20 @@ std::string _getcwd()
 
 int main(int argc, char** argv)
 {
-    goptions = Options(argc, argv);
+    // exits program on error
+    parse_options(argc, argv);
 
+#if 1
+    std::cout << "Nothing to see here yet..." << std::endl;
+#else
     typedef tree_node<int> int_node;
-
-    if (!goptions.process())
-        return 1;
-
-    // handle the information options that stop the program after being displayed
-    if (goptions.help_wanted()) {
-        display_help();
-        return 0;
-    }
-    else if (goptions.version_wanted()) {
-        display_version();
-        return 0;
-    }
-
-    // make sure we have one argument left for the number of folders to create
-    if (goptions.remaining_args() != 1) {
-        // TODO display_syntax();
-        return 1;
-    }
-
-    int folders = goptions.argument_as_int(0);
-    if (!folders) {
-        std::cerr << "Invalid value (" << goptions.argument(0) << ") for number of folders!" << std::endl;
-        return 2;
-    }
-
-    // default to time for rng seed unless user specified one on the command line
-    auto seed = static_cast<std::mt19937::result_type>(time(nullptr));
-    if (goptions.named_arg_exists("seed"))
-        seed = static_cast<std::mt19937::result_type>(goptions.named_arg_as_int("seed"));
-
-    // display the options so that the run can be repeated for testing purposes
-    // TODO - option (/debug | /verbose) to display diagnostic information
-    std::cout
-        << "number of folders: " << folders << '\n'
-        << "seed: " << seed << '\n'
-        << "base directory: '" << (goptions.named_arg_exists("base") ? goptions.named_arg("base") : ".") << "'\n"
-        << std::endl;
 
     // setup rng for shuffling the nodes
     random_generator gen(seed);
 
     // generate a vector of nodes for tree
     std::vector<int_node*> dst;
-    for (int i = 0; i < folders; ++i) {
+    for (int i = 0; i < num_folders; ++i) {
         dst.push_back(new int_node(i));
     }
 
@@ -226,20 +186,19 @@ int main(int argc, char** argv)
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO error checking
     auto current_dir = _getcwd();
-    if (goptions.named_arg_exists("base"))
-        chdir(goptions.named_arg("base").c_str());
+    chdir(base_dir.c_str());
 
     // depth first visit
     traverse(root);
 
     // TODO error checking
-    if (goptions.named_arg_exists("base"))
-        chdir(current_dir.c_str());
+    chdir(current_dir.c_str());
 
     // clean up our objects
     // TODO - replace with generic tree traversal delete delete_tree()
     for (auto it = src.begin(); it != src.end(); ++it)
         delete *it;
+#endif
 
     return 0;
 }

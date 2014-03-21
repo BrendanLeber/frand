@@ -16,7 +16,7 @@
 void display_help()
 {
     std::cout
-        << "Usage: " << goptions.invocation_name() << " [OPTION]... num-folders" << std::endl
+        << "Usage: " << program_name << " [OPTION]... num-folders" << std::endl
         << APPLICATION_SHORT_DESC << std::endl
         << std::endl
         << "      --help     display this help and exit" << std::endl
@@ -25,7 +25,7 @@ void display_help()
         << "  -b, --base=<dir>   set the base directory for generated folder tree" << std::endl
         << "  -s, --seed=<seed>  set the value used to seed the RNG" << std::endl
         << std::endl
-        << "  -d, --debug  display extra information for debugging" << std::endl
+        << "      --debug    display extra information for debugging" << std::endl
         << std::endl
         << "Report bugs to: " << APPLICATION_BUGREPORT << std::endl;
 

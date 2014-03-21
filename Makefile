@@ -1,2 +1,2 @@
-frand: frand.cpp ci_string.h options.h display.cpp display.h
-	g++ -Wall -g -std=c++11 frand.cpp display.cpp -o frand
+frand: frand.cpp options.h options.cpp display.h display.cpp
+	g++ -Wall -g -std=c++11 frand.cpp options.cpp display.cpp -o frand

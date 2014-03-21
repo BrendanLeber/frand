@@ -14,5 +14,5 @@
 #define APPLICATION_VENDOR_URL          "brendanleber.com"
 #define APPLICATION_ID                  "com.brendanleber.frand"
 #define APPLICATION_SHORT_DESC          "Create a random collection of folders."
-#define APPLICATION_BUGREPORT           "frand+bugs@brendanleber.com"
+#define APPLICATION_BUGREPORT           "frand@brendanleber.com"
 #define APPLICATION_URL                 "http://brendanleber.github.io/frand/"
