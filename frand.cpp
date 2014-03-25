@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #include "options.h"
+#include "xplat.h"
 
 
 template<typename T>
@@ -83,66 +84,22 @@ void traverse(T* node)
     const std::string& dir_name = ss.str();
 
     // TODO error checking
-    mkdir(dir_name.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    chdir(dir_name.c_str());
+    xmkdir(dir_name);
+    xchdir(dir_name);
 
     for (auto it = node->children.begin(); it != node->children.end(); ++it)
         traverse(*it);
     
     // TODO error checking
-    chdir("..");
+    xchdir("..");
 }
 
-// ===================================================================================================
-
-std::string _getcwd();
-
-// ===================================================================================================
-
-std::string _getcwd()
-{
-    const size_t chunkSize = 255;
-    const int maxChunks = 10240; // 2550 KiBs of current path are more than enough
-
-    char stackBuffer[chunkSize]; // Stack buffer for the "normal" case
-    if (getcwd(stackBuffer, sizeof(stackBuffer)) != NULL)
-        return stackBuffer;
-    
-    if (errno != ERANGE) {
-        // It's not ERANGE, so we don't know how to handle it
-        throw std::runtime_error("Cannot determine the current path.");
-        // Of course you may choose a different error reporting method
-    }
-
-    // Ok, the stack buffer isn't long enough; fallback to heap allocation
-    for (int chunks = 2; chunks < maxChunks; ++chunks) {
-        // With boost use scoped_ptr; in C++0x, use unique_ptr
-        // If you want to be less C++ but more efficient you may want to use realloc
-        std::auto_ptr<char> cwd(new char[chunkSize*chunks]); 
-        if (getcwd(cwd.get(), chunkSize * chunks) != NULL)
-            return cwd.get();
-
-        if (errno != ERANGE)
-        {
-            // It's not ERANGE, so we don't know how to handle it
-            throw std::runtime_error("Cannot determine the current path.");
-            // Of course you may choose a different error reporting method
-        }   
-    }
-
-    throw std::runtime_error("Cannot determine the current path; the path is apparently unreasonably long");
-}
-
-// ===================================================================================================
 
 int main(int argc, char** argv)
 {
     // exits program on error
     parse_options(argc, argv);
 
-#if 1
-    std::cout << "Nothing to see here yet..." << std::endl;
-#else
     typedef tree_node<int> int_node;
 
     // setup rng for shuffling the nodes
@@ -185,20 +142,19 @@ int main(int argc, char** argv)
 
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO error checking
-    auto current_dir = _getcwd();
-    chdir(base_dir.c_str());
+    auto current_dir = xgetcwd();
+    xchdir(base_dir);
 
     // depth first visit
     traverse(root);
 
     // TODO error checking
-    chdir(current_dir.c_str());
+    xchdir(current_dir);
 
     // clean up our objects
     // TODO - replace with generic tree traversal delete delete_tree()
     for (auto it = src.begin(); it != src.end(); ++it)
         delete *it;
-#endif
 
     return 0;
 }
