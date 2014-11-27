@@ -7,7 +7,7 @@ Create a random collection of folders.
 
 frand uses the [Gitflow Workflow](https://www.atlassian.com/git/workflows#!workflow-gitflow).
 This puts all of the development work on the "develop" branch.  The "master" branch
-only stores the officeal releases.
+only stores the offical releases.
 
 If you would like to contribute to frand please use the following steps
 to check out the source:

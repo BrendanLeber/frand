@@ -1,9 +1,9 @@
 /* Copyright (C) 2013-2014 Brendan Leber <brendan@brendanleber.com>
- * 
+ *
  * This work is free. You can redistribute it and/or modify it under the
  * terms of the Do What The Fuck You Want To Public License, Version 2,
  * as published by Sam Hocevar.
- * 
+ *
  * See http://www.wtfpl.net/ for more details.
  */
 
@@ -42,7 +42,7 @@ struct random_generator : std::unary_function<unsigned, unsigned>
         std::uniform_int_distribution<> rng(0, i - 1);
         return rng(gen);
     }
-    
+
     random_generator(std::mt19937::result_type seed) : gen()
     {
         gen.seed(seed);
@@ -89,7 +89,7 @@ void traverse(T* node)
 
     for (auto it = node->children.begin(); it != node->children.end(); ++it)
         traverse(*it);
-    
+
     // TODO error checking
     xchdir("..");
 }
