@@ -1,9 +1,9 @@
 /* Copyright (C) 2013-2014 Brendan Leber <brendan@brendanleber.com>
- * 
+ *
  * This work is free. You can redistribute it and/or modify it under the
  * terms of the Do What The Fuck You Want To Public License, Version 2,
  * as published by Sam Hocevar.
- * 
+ *
  * See http://www.wtfpl.net/ for more details.
  */
 
@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "options.h"
+#include "utility.h"
 #include "xplat.h"
 
 
@@ -63,7 +64,7 @@ std::string xgetcwd()
     char stackBuffer[chunkSize]; // Stack buffer for the "normal" case
     if (getcwd(stackBuffer, sizeof(stackBuffer)) != NULL)
         return stackBuffer;
-    
+
     if (errno != ERANGE) {
         // It's not ERANGE, so we don't know how to handle it
         throw std::runtime_error("cannot determine the current path.");
@@ -74,7 +75,7 @@ std::string xgetcwd()
     for (int chunks = 2; chunks < maxChunks; ++chunks) {
         // With boost use scoped_ptr; in C++0x, use unique_ptr
         // If you want to be less C++ but more efficient you may want to use realloc
-        std::auto_ptr<char> cwd(new char[chunkSize*chunks]); 
+        std::auto_ptr<char> cwd(new char[chunkSize * chunks]);
         if (getcwd(cwd.get(), chunkSize * chunks) != NULL)
             return cwd.get();
 
@@ -83,7 +84,7 @@ std::string xgetcwd()
             // It's not ERANGE, so we don't know how to handle it
             throw std::runtime_error("cannot determine the current path.");
             // Of course you may choose a different error reporting method
-        }   
+        }
     }
 
     throw std::runtime_error("cannot determine the current path; the path is apparently unreasonably long");
@@ -98,16 +99,51 @@ int xmkdir(const std::string& dir)
     mode_t mask = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 #endif
 
+    // attempt to create the directory
     auto rv = mkdir(dir.c_str(), mask);
 
-    if (debug && rv) {
-        std::cout
-            << "xmkdir('" << dir << "')"
+    if (rv && errno == EEXIST) {
+        // silently accept the error if the directory exists
+        rv = 0;
+    }
+    else if (debug && rv) {
+        // display an error to our user if debug mode is active
+        std::cerr
+            << "mkdir('" << dir << "')"
             << " mask = " << std::oct << mask << std::dec
             << " rv = " << rv
             << " errno = " << errno
             << std::endl;
     }
-    
+
     return rv;
+}
+
+
+int xmkpath(const std::string& path)
+{
+    std::vector<std::string> elements(split(path, '/'));
+
+    std::string p;
+    for (auto it = std::begin(elements); it != std::end(elements); ++it) {
+        if (p.empty())
+            p = *it;
+        else
+            p += "/" + *it;
+
+        if (debug)
+            std::cerr << __FUNCTION__ << ": path '" << p << "'" << std::endl;
+
+        auto rv = xmkdir(p);
+        if (rv) {
+            std::cerr
+                << "xmkdir('" << p << "')"
+                << " rv = " << rv
+                << " errno = " << errno
+                << std::endl;
+            return rv;
+        }
+    }
+
+    return 0;
 }

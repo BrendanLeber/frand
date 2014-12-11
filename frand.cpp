@@ -143,6 +143,7 @@ int main(int argc, char** argv)
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO error checking
     auto current_dir = xgetcwd();
+    xmkpath(base_dir);
     xchdir(base_dir);
 
     // depth first visit
