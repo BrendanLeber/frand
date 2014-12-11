@@ -1,9 +1,9 @@
 /* Copyright (C) 2013-2014 Brendan Leber <brendan@brendanleber.com>
- * 
+ *
  * This work is free. You can redistribute it and/or modify it under the
  * terms of the Do What The Fuck You Want To Public License, Version 2,
  * as published by Sam Hocevar.
- * 
+ *
  * See http://www.wtfpl.net/ for more details.
  */
 
@@ -67,37 +67,37 @@ void parse_options(int argc, char** argv)
 
     int optc;
     while ((optc = getopt_long(argc, argv, ":b:s:", longopts, NULL)) != -1)
-    	switch (optc) {
-            case 0:
-                // getopt_long() set a variable, ignore this
-                break;
+        switch (optc) {
+        case 0:
+            // getopt_long() set a variable, ignore this
+            break;
 
-	        case 'b':
-        		base_dir = optarg;
-	        	break;
+        case 'b':
+            base_dir = optarg;
+            break;
 
-    	    case 's': {
-        		char* endptr;
-	        	long value = strtol(optarg, &endptr, 0);
-		        if (*endptr != '\0') {
-                    std::cerr << program_name << ": invalid integer (" << optarg << ") given for the seed." << std::endl;
-                    error_exit();
-		        }
-                seed = static_cast<std::mt19937::result_type>(value);
-        		break;
-	        }
-
-            case ':':
-                std::cerr << program_name << ": option '" << static_cast<char>(optopt) << "' requires an argument." << std::endl;
+        case 's': {
+            char* endptr;
+            long value = strtol(optarg, &endptr, 0);
+            if (*endptr != '\0') {
+                std::cerr << program_name << ": invalid integer (" << optarg << ") given for the seed." << std::endl;
                 error_exit();
-                break;
+            }
+            seed = static_cast<std::mt19937::result_type>(value);
+            break;
+        }
 
-            case '?':
-    	    default:
-                std::cerr << program_name << ": invalid command line option." << std::endl;
-                error_exit();
-		        break;
-    	}
+        case ':':
+            std::cerr << program_name << ": option '" << static_cast<char>(optopt) << "' requires an argument." << std::endl;
+            error_exit();
+            break;
+
+        case '?':
+        default:
+            std::cerr << program_name << ": invalid command line option." << std::endl;
+            error_exit();
+            break;
+        }
 
     if (do_version) {
         display_version();
@@ -109,11 +109,11 @@ void parse_options(int argc, char** argv)
     }
     else if (argc - optind == 0) {
         std::cerr << program_name << ": missing number of folders to create." << std::endl;
-	    error_exit();
+        error_exit();
     }
     else if (argc - optind != 1) {
         std::cerr << program_name << ": too many options given." << std::endl;
-	    error_exit();
+        error_exit();
     }
 
     char *endptr;
@@ -131,7 +131,7 @@ void parse_options(int argc, char** argv)
     if (debug) {
         std::cout
             << "seed: " << seed << std::endl
-    	    << "number of folders: " << num_folders << std::endl
+            << "number of folders: " << num_folders << std::endl
             << "base directory: " << base_dir << std::endl;
     }
 }
