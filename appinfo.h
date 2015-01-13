@@ -1,10 +1,10 @@
 #pragma once
 
-// Copyright (C) 2013-2014 Brendan Leber <brendan@brendanleber.com>
+// Copyright (C) 2013-2015 Brendan Leber <brendan@brendanleber.com>
 
 #define APPLICATION_NAME                "frand"
 #define APPLICATION_CODENAME            "frand"
-#define APPLICATION_COPYRIGHT_YEARS     "2013-2014"
+#define APPLICATION_COPYRIGHT_YEARS     "2013-2015"
 #define APPLICATION_VERSION_MAJOR       1
 #define APPLICATION_VERSION_MINOR       0
 #define APPLICATION_VERSION_PATCH       0
