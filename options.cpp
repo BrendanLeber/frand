@@ -76,16 +76,16 @@ void parse_options(int argc, char** argv)
             base_dir = optarg;
             break;
 
-        case 's': {
-            char* endptr;
-            long value = strtol(optarg, &endptr, 0);
-            if (*endptr != '\0') {
+        case 's':
+            try {
+                auto value = std::stol(optarg);
+                seed = static_cast<std::mt19937::result_type>(value);
+            }
+            catch (std::logic_error& ex) {
                 std::cerr << program_name << ": invalid integer (" << optarg << ") given for the seed." << std::endl;
                 error_exit();
             }
-            seed = static_cast<std::mt19937::result_type>(value);
             break;
-        }
 
         case ':':
             std::cerr << program_name << ": option '" << static_cast<char>(optopt) << "' requires an argument." << std::endl;
@@ -119,7 +119,6 @@ void parse_options(int argc, char** argv)
     }
     catch (std::logic_error& ex) {
         std::cerr << program_name << ": invalid integer (" << argv[optind] << ") for the number of folders to create." << std::endl;
-        std::cerr << ex.what() << std::endl;
         error_exit();
     }
 
