@@ -59,10 +59,10 @@ int xchdir(const std::string& dir)
 std::string xgetcwd()
 {
     const size_t chunkSize = 255;
-    const int maxChunks = 10240; // 2550 KiBs of current path are more than enough
+    const size_t maxChunks = 10240; // 2550 KiBs of current path are more than enough
 
     char stackBuffer[chunkSize]; // Stack buffer for the "normal" case
-    if (getcwd(stackBuffer, sizeof(stackBuffer)) != NULL)
+    if (getcwd(stackBuffer, sizeof(stackBuffer)) != nullptr)
         return stackBuffer;
 
     if (errno != ERANGE) {
@@ -72,11 +72,11 @@ std::string xgetcwd()
     }
 
     // Ok, the stack buffer isn't long enough; fallback to heap allocation
-    for (int chunks = 2; chunks < maxChunks; ++chunks) {
+    for (size_t chunks = 2; chunks < maxChunks; ++chunks) {
         // With boost use scoped_ptr; in C++0x, use unique_ptr
         // If you want to be less C++ but more efficient you may want to use realloc
         std::auto_ptr<char> cwd(new char[chunkSize * chunks]);
-        if (getcwd(cwd.get(), chunkSize * chunks) != NULL)
+        if (getcwd(cwd.get(), chunkSize * chunks) != nullptr)
             return cwd.get();
 
         if (errno != ERANGE)

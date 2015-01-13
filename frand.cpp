@@ -39,13 +39,13 @@ struct random_generator : std::unary_function<unsigned, unsigned>
 
     unsigned operator()(unsigned i)
     {
-        std::uniform_int_distribution<> rng(0, i - 1);
+        std::uniform_int_distribution<unsigned> rng(0, i - 1);
         return rng(gen);
     }
 
-    random_generator(std::mt19937::result_type seed) : gen()
+    random_generator(std::mt19937::result_type aseed) : gen()
     {
-        gen.seed(seed);
+        gen.seed(aseed);
     }
 
 private:

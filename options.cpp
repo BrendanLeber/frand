@@ -23,7 +23,7 @@ std::string base_dir;
 std::mt19937::result_type seed;
 int num_folders;
 
-static void error_exit();
+[[noreturn]] static void error_exit();
 static void set_program_name(const char* argv0);
 
 static int do_help = 0;
@@ -34,12 +34,12 @@ static const struct option longopts[] =
     { "help",    no_argument,       &do_help,    1   },
     { "version", no_argument,       &do_version, 1   },
     { "debug",   no_argument,       &debug,      1   },
-    { "base",    required_argument, NULL,        'b' },
-    { "seed",    required_argument, NULL,        's' },
-    { NULL,      0,                 NULL, 0          }
+    { "base",    required_argument, nullptr,     'b' },
+    { "seed",    required_argument, nullptr,     's' },
+    { nullptr,   0,                 nullptr,     0   }
 };
 
-static void error_exit()
+[[noreturn]] static void error_exit()
 {
     std::cerr << "Try `" << program_name << " --help' for more information." << std::endl;
     exit(EXIT_FAILURE);
@@ -66,7 +66,7 @@ void parse_options(int argc, char** argv)
     opterr = 0;
 
     int optc;
-    while ((optc = getopt_long(argc, argv, ":b:s:", longopts, NULL)) != -1)
+    while ((optc = getopt_long(argc, argv, ":b:s:", longopts, nullptr)) != -1)
         switch (optc) {
         case 0:
             // getopt_long() set a variable, ignore this
@@ -90,13 +90,11 @@ void parse_options(int argc, char** argv)
         case ':':
             std::cerr << program_name << ": option '" << static_cast<char>(optopt) << "' requires an argument." << std::endl;
             error_exit();
-            break;
 
         case '?':
         default:
             std::cerr << program_name << ": invalid command line option." << std::endl;
             error_exit();
-            break;
         }
 
     if (do_version) {
@@ -116,10 +114,12 @@ void parse_options(int argc, char** argv)
         error_exit();
     }
 
-    char *endptr;
-    num_folders = strtol(argv[optind], &endptr, 0);
-    if (*endptr != '\0') {
+    try {
+        num_folders = std::stoi(argv[optind]);
+    }
+    catch (std::logic_error& ex) {
         std::cerr << program_name << ": invalid integer (" << argv[optind] << ") for the number of folders to create." << std::endl;
+        std::cerr << ex.what() << std::endl;
         error_exit();
     }
 

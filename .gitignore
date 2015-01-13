@@ -1,3 +1,7 @@
+# other files
+cscope.out
+Makefile
+
 # Compiled Object files
 *.slo
 *.lo
