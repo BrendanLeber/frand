@@ -55,7 +55,6 @@ int xchdir(const std::string& dir)
 }
 
 
-// TODO rewrite to use std::vector or something like that instead
 std::string xgetcwd()
 {
     const size_t chunkSize = 255;
@@ -72,12 +71,13 @@ std::string xgetcwd()
     }
 
     // Ok, the stack buffer isn't long enough; fallback to heap allocation
+    std::vector<char> cwd;
     for (size_t chunks = 2; chunks < maxChunks; ++chunks) {
         // With boost use scoped_ptr; in C++0x, use unique_ptr
         // If you want to be less C++ but more efficient you may want to use realloc
-        std::auto_ptr<char> cwd(new char[chunkSize * chunks]);
-        if (getcwd(cwd.get(), chunkSize * chunks) != nullptr)
-            return cwd.get();
+        cwd.resize(chunkSize * chunks);
+        if (getcwd(cwd.data(), chunkSize * chunks) != nullptr)
+            return cwd.data();
 
         if (errno != ERANGE)
         {

@@ -3,6 +3,7 @@ cscope.out
 Makefile
 
 # Compiled Object files
+*.plist
 *.slo
 *.lo
 *.o
