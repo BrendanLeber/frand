@@ -48,9 +48,8 @@ struct random_generator : std::unary_function<unsigned, unsigned>
         gen.seed(aseed);
     }
 
-private:
-    random_generator(const random_generator& src);
-    random_generator& operator=(const random_generator& rhs);
+    random_generator(const random_generator& src) = delete;
+    random_generator& operator=(const random_generator& rhs) = delete;
 };
 
 
