@@ -13,13 +13,20 @@
 #include <random>
 #include <sstream>
 #include <stdexcept>
-
+#include <cstring>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "options.h"
-#include "xplat.h"
+#include "options.hpp"
+
+
+std::vector<std::string> split(const std::string str, char delim);
+
+int xchdir(std::string dir);
+std::string xgetcwd();
+int xmkdir(std::string dir);
+int xmkpath(std::string path);
 
 
 template<typename T>
@@ -39,13 +46,13 @@ struct random_generator : std::unary_function<unsigned, unsigned>
 
     unsigned operator()(unsigned i)
     {
-        std::uniform_int_distribution<> rng(0, i - 1);
+        std::uniform_int_distribution<unsigned> rng(0, i - 1);
         return rng(gen);
     }
 
-    random_generator(std::mt19937::result_type seed) : gen()
+    random_generator(std::mt19937::result_type s) : gen()
     {
-        gen.seed(seed);
+        gen.seed(s);
     }
 
 private:
@@ -69,7 +76,19 @@ Iter random_element(Iter begin, Iter end, random_generator& gen)
 template<typename T>
 T num_digits(T value)
 {
-    return static_cast<T>(floor(log10(abs(static_cast<double>(value))))) + 1;
+    return static_cast<T>(floor(log10(fabs(static_cast<double>(value))))) + 1;
+}
+
+
+std::vector<std::string>
+split(const std::string str, char delim)
+{
+    std::stringstream ss(str);
+    std::string item;
+    std::vector<std::string> elems;
+    while (std::getline(ss, item, delim))
+        elems.push_back(item);
+    return elems;
 }
 
 
@@ -95,19 +114,108 @@ void traverse(T* node)
 }
 
 
+int xchdir(std::string dir)
+{
+    if (Options::debug())
+        std::cout << "--- xchdir('" << dir << "')\n";
+    
+    int rv = chdir(dir.c_str());
+
+    if (rv)
+        std::cout << "*** " << strerror(errno) << '\n';
+
+    return rv;
+}
+
+
+std::string xgetcwd()
+{
+    // 255 chars should be enough for the normal case
+    std::vector<char> cwd(255);
+    while (true) {
+        if (getcwd(cwd.data(), cwd.size() * sizeof(char)) != nullptr)
+            return std::string(std::begin(cwd), std::end(cwd));
+
+        if (errno != ERANGE) {
+            // It's not ERANGE, so we don't know how to handle it
+            throw std::runtime_error("cannot determine the current path.");
+            // Of course you may choose a different error reporting method
+        }
+
+        cwd.resize(cwd.size() * 2);
+    }
+}
+
+
+int xmkdir(std::string dir)
+{
+    if (Options::debug())
+        std::cout << "--- xchdir('" << dir << "')\n";
+    
+#if 0
+    mode_t mask = xgetumask();
+#else
+    mode_t mask = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+#endif
+
+    // attempt to create the directory
+    auto rv = mkdir(dir.c_str(), mask);
+
+    if (rv && errno == EEXIST) {
+        // silently accept the error if the directory exists
+        rv = 0;
+    }
+    else if (rv) {
+        // display an error to our user if debug mode is active
+        std::cerr << "*** " << strerror(errno) << '\n';
+    }
+
+    return rv;
+}
+
+
+int xmkpath(std::string path)
+{
+    auto elements = split(path, '/');
+
+    std::string p;
+    for (auto element : elements) {
+        if (p.empty())
+            p = element;
+        else
+            p += "/" + element;
+
+        if (Options::debug())
+            std::cerr << __FUNCTION__ << ": path '" << p << "'" << std::endl;
+
+        auto rv = xmkdir(p);
+        if (rv) {
+            std::cerr
+                << "xmkdir('" << p << "')"
+                << " rv = " << rv
+                << " errno = " << errno
+                << std::endl;
+            return rv;
+        }
+    }
+
+    return 0;
+}
+
+
 int main(int argc, char** argv)
 {
     // exits program on error
-    parse_options(argc, argv);
+    Options::parse(argc, argv);
 
     typedef tree_node<int> int_node;
 
     // setup rng for shuffling the nodes
-    random_generator gen(seed);
+    random_generator gen(Options::seed());
 
     // generate a vector of nodes for tree
     std::vector<int_node*> dst;
-    for (int i = 0; i < num_folders; ++i) {
+    for (int i = 0; i < Options::num_folders(); ++i) {
         dst.push_back(new int_node(i));
     }
 
@@ -143,8 +251,8 @@ int main(int argc, char** argv)
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO error checking
     auto current_dir = xgetcwd();
-    xmkpath(base_dir);
-    xchdir(base_dir);
+    xmkpath(Options::base_dir());
+    xchdir(Options::base_dir());
 
     // depth first visit
     traverse(root);
