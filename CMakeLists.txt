@@ -13,6 +13,25 @@ if(NOT CMAKE_BUILD_TYPE)
     FORCE)
 endif()
 
+
+# application info
+set(APPLICATION_NAME "frand")
+set(APPLICATION_CODENAME "frand")
+set(APPLICATION_COPYRIGHT_YEARS "2013-2017")
+set(APPLICATION_VERSION_MAJOR 1)
+set(APPLICATION_VERISON_MINOR 0)
+set(APPLICATION_VERSION_PATCH 0)
+set(APPLICATION_VERSION_STRING "1.0.0")
+set(APPLICATION_VENDOR_ID "com.brendanleber")
+set(APPLICATION_VENDOR_NAME "Brendan Leber")
+set(APPLICATION_VENDOR_URL "brendanleber.com")
+set(APPLICATION_ID "com.brendanleber.frand")
+set(APPLICATION_SHORT_DESC "Create a random collection of folders.")
+set(APPLICATION_BUGREPORT "frand@brendanleber.com")
+set(APPLICATION_URL "http://frand.brendanleber.com/")
+configure_file("${PROJECT_SOURCE_DIR}/src/appinfo.hpp.in" "${PROJECT_BINARY_DIR}/appinfo.hpp")
+include_directories("${PROJECT_BINARY_DIR}")
+
 #include_directories(${PROJECT_SOURCE_DIR}/external/cxxopts/include)
 
 set(FRAND_SOURCES
