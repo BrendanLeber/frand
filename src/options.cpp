@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2014 Brendan Leber <brendan@brendanleber.com>
+/* Copyright (C) 2013-2017 Brendan Leber <brendan@brendanleber.com>
  *
  * This work is free. You can redistribute it and/or modify it under the
  * terms of the Do What The Fuck You Want To Public License, Version 2,
@@ -16,12 +16,17 @@
 #include "options.hpp"
 
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+
 std::string Options::m_program_name;
 int Options::m_debug = 0;
 std::string Options::m_base_dir;
 std::mt19937::result_type Options::m_seed { 0 };
 long Options::m_num_folders { 0 };
 
+#pragma clang diagnostic pop
 
 
 [[noreturn]] static void error_exit()
