@@ -12,7 +12,7 @@
 #include <getopt.h>
 #include <cstdlib>
 
-#include "appinfo.h"
+#include "appinfo.hpp"
 #include "options.hpp"
 
 
