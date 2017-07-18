@@ -7,34 +7,32 @@
  * See http://www.wtfpl.net/ for more details.
  */
 
+#include <cstdlib>
+#include <getopt.h>
 #include <iostream>
 #include <string>
-#include <getopt.h>
-#include <cstdlib>
 
 #include "appinfo.hpp"
 #include "options.hpp"
-
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wglobal-constructors"
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 
-std::string Options::m_program_name;
-int Options::m_debug = 0;
-std::string Options::m_base_dir;
-std::mt19937::result_type Options::m_seed { 0 };
-long Options::m_num_folders { 0 };
+// TODO(bml) remove NOLINT after upgrading to a version of clang-tidy that's been fixed
+std::string Options::m_program_name; // NOLINT
+int Options::m_debug = 0; // NOLINT
+std::string Options::m_base_dir; // NOLINT
+std::mt19937::result_type Options::m_seed{0}; // NOLINT
+long Options::m_num_folders{0}; // NOLINT
 
 #pragma clang diagnostic pop
-
 
 [[noreturn]] static void error_exit()
 {
     std::cerr << "Try `" << Options::program_name() << " --help' for more information.\n";
     exit(EXIT_FAILURE);
 }
-
 
 [[noreturn]] static void display_help()
 {
@@ -59,7 +57,6 @@ long Options::m_num_folders { 0 };
     exit(EXIT_SUCCESS);
 }
 
-
 [[noreturn]] static void display_version()
 {
     std::cout
@@ -76,22 +73,19 @@ long Options::m_num_folders { 0 };
     exit(EXIT_SUCCESS);
 }
 
-
 // on error, print message and exit
 void Options::parse(int argc, char** argv)
 {
-    int do_help { 0 };
-    int do_version { 0 };
+    static int do_help{0};
+    static int do_version{0};
 
-    static const struct option longopts[] =
-    {
-        { "help",    no_argument,       &do_help,    1   },
-        { "version", no_argument,       &do_version, 1   },
-        { "debug",   no_argument,       &m_debug,    1   },
-        { "base",    required_argument, NULL,        'b' },
-        { "seed",    required_argument, NULL,        's' },
-        { NULL,      0,                 NULL, 0          }
-    };
+    static const struct option longopts[] = {
+        {"help", no_argument, &do_help, 1},
+        {"version", no_argument, &do_version, 1},
+        {"debug", no_argument, &m_debug, 1},
+        {"base", required_argument, nullptr, 'b'},
+        {"seed", required_argument, nullptr, 's'},
+        {nullptr, 0, nullptr, 0}};
 
     // set initial state of global variables
     m_debug = 0;
@@ -104,14 +98,15 @@ void Options::parse(int argc, char** argv)
     m_debug = 1;
 #endif
 
-    set_program_name(argv[0]);
+    set_program_name(argv[0]); // NOLINT
     setlocale(LC_ALL, "");
 
     // we will display our own error messages, thanks.
     opterr = 0;
 
     int optc;
-    while ((optc = getopt_long(argc, argv, ":b:s:", longopts, NULL)) != -1)
+    auto plongopts = static_cast<const struct option*>(&longopts[0]);
+    while ((optc = getopt_long(argc, argv, ":b:s:", plongopts, nullptr)) != -1) {
         switch (optc) {
         case 0:
             // getopt_long() set a variable, ignore this
@@ -123,7 +118,7 @@ void Options::parse(int argc, char** argv)
 
         case 's': {
             char* endptr;
-            long value = strtol(optarg, &endptr, 0);
+            auto value = strtol(optarg, &endptr, 0);
             if (*endptr != '\0') {
                 std::cerr << m_program_name << ": invalid integer (" << optarg << ") given for the seed.\n";
                 error_exit();
@@ -141,11 +136,12 @@ void Options::parse(int argc, char** argv)
             std::cerr << m_program_name << ": invalid command line option.\n";
             error_exit();
         }
+    }
 
-    if (do_version) {
+    if (do_version != 0) {
         display_version();
     }
-    else if (do_help) {
+    else if (do_help != 0) {
         display_help();
     }
     else if (argc - optind == 0) {
@@ -157,10 +153,13 @@ void Options::parse(int argc, char** argv)
         error_exit();
     }
 
-    char *endptr;
-    m_num_folders = strtol(argv[optind], &endptr, 0);
+    char* endptr;
+    m_num_folders = strtol(argv[optind], &endptr, 0); // NOLINT
     if (*endptr != '\0') {
-        std::cerr << m_program_name << ": invalid integer (" << argv[optind] << ") for the number of folders to create.\n";
+        std::cerr
+            << m_program_name << ": invalid integer ("
+            << argv[optind] // NOLINT
+            << ") for the number of folders to create.\n";
         error_exit();
     }
 
@@ -169,7 +168,7 @@ void Options::parse(int argc, char** argv)
         error_exit();
     }
 
-    if (m_debug) {
+    if (m_debug != 0) {
         std::cout
             << "seed: " << m_seed << std::endl
             << "number of folders: " << m_num_folders << std::endl
@@ -181,7 +180,7 @@ void Options::parse(int argc, char** argv)
 void Options::set_program_name(const char* argv0)
 {
     m_program_name = argv0;
-    auto pend = m_program_name.find_last_of("\\/");
+    auto pend = m_program_name.find_last_of(R"(\/)");
     pend = pend == std::string::npos ? 0 : pend + 1;
     auto eend = m_program_name.find_last_of('.');
     m_program_name = m_program_name.substr(pend, eend - pend);
