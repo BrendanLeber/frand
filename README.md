@@ -60,7 +60,7 @@ Your pull request should:
 
 * Have clear commit messages 
 
-  * e.g. "Fix issue", "Add tests for type", etc.
+  * e.g. "Fix issue...", "Add tests for type", etc.
 
 * Include appropriate tests 
     * Tests should include reasonable permutations of the target fix/change
@@ -69,6 +69,18 @@ Your pull request should:
 
 * To avoid line ending issues, set `autocrlf = input` and `whitespace
   = cr-at-eol` in your git configuration
+
+# Future Improvements and Features
+
+## Improvements
+
+- [x] Create base directory if it doesn't exist.
+- [ ] Use std::shared_ptr<> instead of raw pointers.
+
+## Future Features
+
+- [ ] Accept `--prefix=<string>` argument to add a prefix to all the directories created.
+- [ ] Add `--fill=<int>` argument to create zero-filled path names.
 
 # LICENSE AND COPYRIGHT
 
