@@ -4,6 +4,7 @@ project(frand)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_XX_FLAGS} -Weverything -Wno-c++98-compat -Wno-padded -pedantic")
 set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -72,10 +73,10 @@ set(APPLICATION_URL "http://frand.brendanleber.com/")
 configure_file("${PROJECT_SOURCE_DIR}/src/appinfo.hpp.in" "${PROJECT_BINARY_DIR}/appinfo.hpp")
 include_directories("${PROJECT_BINARY_DIR}")
 
-#include_directories(${PROJECT_SOURCE_DIR}/external/cxxopts/include)
 
 set(FRAND_SOURCES
   src/frand.cpp
   src/options.cpp)
 
 add_executable(frand ${FRAND_SOURCES})
+install(TARGETS frand DESTINATION bin)

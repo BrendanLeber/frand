@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <system_error>
 #include <unistd.h>
 
 // TODO(bml) remove after Microsoft/GSL fixes this warning
@@ -150,8 +151,7 @@ std::string xgetcwd()
 
         if (errno != ERANGE) {
             // It's not ERANGE, so we don't know how to handle it
-            throw std::runtime_error("cannot determine the current path.");
-            // Of course you may choose a different error reporting method
+            throw std::system_error(errno, std::system_category());
         }
 
         cwd.resize(cwd.size() * 2);
