@@ -46,12 +46,12 @@ int xmkdir(const std::string& dir);
 int xmkpath(const std::string& path);
 
 template <typename T>
-struct tree_node {
+struct Tree_Node {
     T data;
-    tree_node* parent;
-    std::vector<tree_node*> children;
+    Tree_Node* parent;
+    std::vector<Tree_Node*> children;
 
-    explicit tree_node(T value) : data(value), parent(nullptr) {}
+    explicit Tree_Node(T value) : data(std::move(value)), parent(nullptr) {}
 };
 
 struct random_generator : std::unary_function<unsigned, unsigned> {
@@ -109,9 +109,7 @@ void traverse(T* node)
         return;
     }
 
-    std::stringstream ss;
-    ss << node->data;
-    const std::string& dir_name = ss.str();
+    const std::string dir_name(node->data);
 
     // TODO(bml) error checking
     xmkdir(dir_name);
@@ -223,24 +221,23 @@ int main(int argc, char** argv)
     // exits program on error
     Options::parse(argc, argv);
 
-    using int_node = tree_node<int>;
+    using Node = Tree_Node<std::string>;
 
     // setup rng for shuffling the nodes
     random_generator gen(Options::seed());
 
     // generate a vector of nodes for tree
-    std::vector<int_node*> dst;
+    std::vector<Node*> dst;
     for (int i = 0; i < Options::num_folders(); ++i) {
-        dst.push_back(new int_node(i));
+        dst.push_back(new Node(std::to_string(i)));
     }
 
     // dst := random permutation of all nodes;
     std::random_shuffle(dst.begin(), dst.end(), gen);
 
-    // src.push(dst.pop()); % picks the root
-    std::vector<int_node*> src;
-    src.push_back(*dst.rbegin());
-    dst.pop_back();
+    // set the base dir as the root of our tree
+    std::vector<Node*> src;
+    src.push_back(new Node(Options::base_dir()));
 
     while (!dst.empty()) {
         // a := random element from src;
@@ -261,13 +258,11 @@ int main(int argc, char** argv)
     }
 
     // our shiny new random tree
-    int_node* root = *src.begin();
+    Node* root = *src.begin();
 
     // if the user specified a base directory, save current, change to base, execute and restore current
     // TODO(bml) error checking
     auto current_dir = xgetcwd();
-    xmkpath(Options::base_dir());
-    xchdir(Options::base_dir());
 
     // depth first visit
     traverse(root);
