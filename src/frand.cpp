@@ -54,7 +54,8 @@ struct Tree_Node {
     explicit Tree_Node(T value) : data(std::move(value)), parent(nullptr) {}
 };
 
-struct random_generator : std::unary_function<unsigned, unsigned> {
+struct random_generator : std::unary_function<unsigned, unsigned>
+{
     std::mt19937 gen;
 
     unsigned operator()(unsigned i)
@@ -76,8 +77,9 @@ struct random_generator : std::unary_function<unsigned, unsigned> {
 template <typename Iter>
 Iter random_element(Iter begin, Iter end, random_generator& gen) // NOLINT
 {
-    const typename Iter::difference_type n = std::distance(begin, end);
-    const typename Iter::difference_type k = gen(static_cast<unsigned>(n));
+    auto n = std::distance(begin, end);
+    auto k = gen(static_cast<unsigned>(n));
+    std::cerr << "n: " << n << "  k: " << k << '\n';
 
     Iter ret = begin;
     std::advance(ret, k);
@@ -159,7 +161,7 @@ std::string xgetcwd()
 int xmkdir(const std::string& dir)
 {
     if (Options::debug()) {
-        std::cout << "--- xchdir('" << dir << "')\n";
+        std::cout << "--- xmkdir('" << dir << "')\n";
     }
 
 #if 0
